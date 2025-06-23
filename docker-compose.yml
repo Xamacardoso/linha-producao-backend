@@ -1,0 +1,31 @@
+services:
+  db:
+
+    image: xamacardoso/linha-producao-db:1.0
+    
+    # Garante que o container reinicie automaticamente se ele parar ou se o sistema reiniciar.
+    restart: always
+    
+    # Configura as variáveis de ambiente dentro do container.
+    # O PostgreSQL usa essas variáveis na primeira vez que é iniciado para criar o banco de dados e o usuário.
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: linha-producao-db
+    
+    # Mapeia as portas. A porta 5433 da sua máquina local (host) será redirecionada
+    # para a porta 5432 dentro do container (porta padrão do Postgres).
+    # Usamos 5433 para não dar conflito se você já tiver o Postgres rodando localmente.
+    ports:
+      - "5433:5432"
+      
+    # Gerencia a persistência dos dados.
+    # Isso garante que, mesmo que você pare e remova o container, seus dados não serão perdidos.
+    volumes:
+      - ./db-init/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+# Declaração dos volumes nomeados que usamos acima.
+volumes:
+  postgres_data:
+
+
