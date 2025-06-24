@@ -4,27 +4,29 @@ import { IProduto } from '../types/entities';
 
 interface IScanBody {
   numero_serie: string;
+  linha_id: number;
 }
 
 export default async function scannerRoutes(fastify: FastifyInstance) {
   
   fastify.post('/associar-ao-ultimo', { schema: { body: scannerBodySchema, tags: ['Scanner'], summary: 'Associa um serial ao último produto concluído' } },
   async (request: FastifyRequest<{ Body: IScanBody }>, reply: FastifyReply) => {
-    const { numero_serie } = request.body;
+    const { numero_serie, linha_id } = request.body;
     const client = await fastify.pg.connect();
     
     try {
       await client.query('BEGIN');
 
-      // 1. Encontra o produto concluído mais recente que AINDA NÃO TEM um 'id_produto' (número de série).
+      // 1. Encontra o produto concluído mais recente NA LINHA ESPECIFICADA que AINDA NÃO TEM um 'id_produto' (número de série).
       //    "FOR UPDATE" é CRUCIAL aqui. Ele bloqueia a linha encontrada para evitar que duas chamadas
       //    simultâneas tentem pegar o mesmo produto, garantindo que não haja race conditions.
       const { rows: [targetProduct] } = await client.query<IProduto>(
         `SELECT id FROM produto 
-         WHERE status_geral = 'Concluido' AND n_serie IS NULL 
+         WHERE status_geral = 'Concluido' AND n_serie IS NULL AND linha_id = $1
          ORDER BY data_conclusao DESC 
          LIMIT 1 
-         FOR UPDATE;`
+         FOR UPDATE;`,
+        [linha_id]
       );
 
       // 2. Verifica se um produto foi encontrado

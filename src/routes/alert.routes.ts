@@ -4,7 +4,7 @@ import { IAlerta } from '../types/entities';
 
 interface IAlertBody {
     linha_id: number;
-    etapa_id?: number;
+    etapa_id: number;
 }
 
 export default async function alertRoutes(fastify: FastifyInstance) {

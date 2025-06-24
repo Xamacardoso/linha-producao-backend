@@ -18,7 +18,7 @@ export interface IProduto {
   export interface IAlerta {
     id: number;
     linha_id: number;
-    etapa_id: number | null; // Nulo se for um alerta geral da linha
+    etapa_id: number;
     descricao: string;
     inicio_alerta_ts: Date;
     fim_alerta_ts: Date | null; // Nulo enquanto o alerta estiver ativo
