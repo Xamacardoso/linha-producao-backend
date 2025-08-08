@@ -22,7 +22,7 @@ services:
     # Gerencia a persistência dos dados.
     # Isso garante que, mesmo que você pare e remova o container, seus dados não serão perdidos.
     volumes:
-      - ./db-init/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
 
 # Declaração dos volumes nomeados que usamos acima.
 volumes:
