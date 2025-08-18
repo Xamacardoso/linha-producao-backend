@@ -1,5 +1,4 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { request } from 'http';
 import { AppError } from 'src/lib/AppError';
 import { ProductAnalyticsService } from 'src/services/product.analytics.service';
 

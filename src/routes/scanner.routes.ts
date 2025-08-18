@@ -1,6 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { scannerBodySchema } from '../schemas/scanner.schema';
-import { IProduto } from '../types/entities';
 import { ScannerService } from 'src/services/scanner.service';
 import { AppError } from 'src/lib/AppError';
 

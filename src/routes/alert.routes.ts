@@ -1,6 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { alertBodySchema } from '../schemas/alert.schema';
-import { IAlerta } from '../types/entities';
 import { Alerta, AlertService } from 'src/services/alert.service';
 import { AppError } from 'src/lib/AppError';
 
@@ -11,6 +10,19 @@ interface IAlertBody {
 
 export default async function alertRoutes(fastify: FastifyInstance) {
   const alertService: AlertService = new AlertService();
+
+  // Rota para buscar todos os alertas
+  fastify.get('/', { schema: { tags: ['Alertas'], summary: 'Lista todos os alertas abertos' } },
+  async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const alertas: Alerta[] = await alertService.listarAlertas();
+      return reply.status(200).send(alertas);
+
+    } catch (e) {
+      fastify.log.error(e);
+      return reply.status(500).send({ message: 'Erro ao listar alertas.' });
+    }
+  });
 
   // Rota para INICIAR um novo alerta
   fastify.post('/', { schema: { body: alertBodySchema, tags: ['Alertas'], summary: 'Cria um novo alerta na linha' } },
