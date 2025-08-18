@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { eventBodySchema } from '../schemas/event.schema';
-import { EventService } from 'src/services/event.service';
+import { EventService } from '../services/event.service';
 
 interface IEventBody {
   tipo: 'start' | 'stop';

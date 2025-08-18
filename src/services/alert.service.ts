@@ -1,7 +1,7 @@
-import { db } from "src/db";
-import { alerta, etapa } from "src/db/schema";
+import { db } from "../db";
+import { alerta, etapa } from "../db/schema";
 import { eq, and, desc } from "drizzle-orm";
-import { AppError } from "src/lib/AppError";
+import { AppError } from "../lib/AppError";
 
 export type Alerta = typeof alerta.$inferSelect;
 

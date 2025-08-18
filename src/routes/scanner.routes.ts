@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { scannerBodySchema } from '../schemas/scanner.schema';
-import { ScannerService } from 'src/services/scanner.service';
-import { AppError } from 'src/lib/AppError';
+import { ScannerService } from '../services/scanner.service';
+import { AppError } from '../lib/AppError';
 
 const IntegrityError = '23505'; // Erro de violação de chave única
 

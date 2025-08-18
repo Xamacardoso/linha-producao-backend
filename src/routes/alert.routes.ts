@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { alertBodySchema } from '../schemas/alert.schema';
-import { Alerta, AlertService } from 'src/services/alert.service';
-import { AppError } from 'src/lib/AppError';
+import { Alerta, AlertService } from '../services/alert.service';
+import { AppError } from '../lib/AppError';
 
 interface IAlertBody {
     linha_id: number;

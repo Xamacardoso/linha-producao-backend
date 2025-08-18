@@ -1,7 +1,7 @@
-import { db } from "src/db";
-import { produto, historicoEtapa, etapa } from "src/db/schema";
+import { db } from "../db";
+import { produto, historicoEtapa, etapa } from "../db/schema";
 import { eq, and, isNull, isNotNull } from "drizzle-orm";
-import { AppError } from "src/lib/AppError";
+import { AppError } from "../lib/AppError";
 
 export class EventService {
     public async startStop(etapa: number, linhaId: number, tipo: 'start' | 'stop'): Promise<number> {

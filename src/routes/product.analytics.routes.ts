@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { AppError } from 'src/lib/AppError';
-import { ProductAnalyticsService } from 'src/services/product.analytics.service';
+import { AppError } from '../lib/AppError';
+import { ProductAnalyticsService } from '../services/product.analytics.service';
 
 export default async function productAnalyticsRoutes(fastify: FastifyInstance) {
   const productAnalyticsService = new ProductAnalyticsService();

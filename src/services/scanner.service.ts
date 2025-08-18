@@ -1,7 +1,7 @@
-import { db } from "src/db";
-import { produto } from "src/db/schema"; // Schema do modelo de produto na linha
+import { db } from "../db";
+import { produto } from "../db/schema"; // Schema do modelo de produto na linha
 import { eq, and, isNull, desc } from "drizzle-orm";
-import { AppError } from "src/lib/AppError";
+import { AppError } from "../lib/AppError";
 
 // Inferindo o tipo do produto a partir do schema para reutilização
 export type Produto = typeof produto.$inferSelect;
