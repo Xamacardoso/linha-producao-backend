@@ -56,7 +56,7 @@ server.register(fastifySwaggerUI, {
 server.register(eventRoutes, { prefix: '/api/eventos' });
 server.register(scannerRoutes, { prefix: '/api/scanner' });
 server.register(alertRoutes, { prefix: '/api/alertas' });
-server.register(productAnalyticsRoutes, { prefix: '/api/produtos' });
+server.register(productAnalyticsRoutes, { prefix: '/api/analise-tempo' });
 
 // --- Inicialização do Servidor ---
 const start = async () => {

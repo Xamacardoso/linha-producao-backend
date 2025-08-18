@@ -4,7 +4,18 @@ import { eq, and, isNull, isNotNull } from "drizzle-orm";
 import { AppError } from "src/lib/AppError";
 
 export class EventService {
-    public async iniciarEtapa(etapa: number, linhaId: number): Promise<number> {
+    public async startStop(etapa: number, linhaId: number, tipo: 'start' | 'stop'): Promise<number> {
+        if (tipo === 'start') {
+            return this.iniciarEtapa(etapa, linhaId);
+        } else if (tipo === 'stop') {
+            return this.finalizarEtapa(etapa, linhaId);
+        } else {
+            throw new AppError('Tipo de evento inválido. Use "start" ou "stop".', 400);
+        }
+
+    }
+
+    private async iniciarEtapa(etapa: number, linhaId: number): Promise<number> {
         if (etapa === 1) {
             return this.iniciarProducao(linhaId);
         } else {
@@ -56,7 +67,7 @@ export class EventService {
         return produtoId;
     }
 
-    public async finalizarEtapa(etapa: number, linhaId: number) : Promise<number> {
+    private async finalizarEtapa(etapa: number, linhaId: number) : Promise<number> {
         return db.transaction(async (tx) => {
             // Encontra o produto que está ativo na etapa e linha especificadas
             const [produtoNaEtapa] = await tx
