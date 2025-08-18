@@ -44,7 +44,7 @@ server.register(fastifySwagger, {
 
 // Registra a UI do Swagger para criar uma página de documentação interativa
 server.register(fastifySwaggerUI, {
-  routePrefix: '/documentation',
+  routePrefix: '/docs',
   uiConfig: {
     docExpansion: 'list', // 'full', 'none'
     deepLinking: true
