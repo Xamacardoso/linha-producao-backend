@@ -10,6 +10,7 @@ import eventRoutes from './routes/event.routes';
 import scannerRoutes from './routes/scanner.routes';
 import alertRoutes from './routes/alert.routes';
 import productAnalyticsRoutes from './routes/product.analytics.routes';
+import productTargetRoutes from './routes/product.target.routes';
 
 // Carrega as variáveis de ambiente do arquivo .env
 dotenv.config();
@@ -56,6 +57,7 @@ server.register(fastifySwaggerUI, {
 server.register(eventRoutes, { prefix: '/api/eventos' });
 server.register(scannerRoutes, { prefix: '/api/scanner' });
 server.register(alertRoutes, { prefix: '/api/alertas' });
+server.register(productTargetRoutes, { prefix: '/api/metas' });
 server.register(productAnalyticsRoutes, { prefix: '/api/analise-tempo' });
 
 // --- Inicialização do Servidor ---
