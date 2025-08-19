@@ -1,5 +1,4 @@
 import { pgTable, serial, varchar, foreignKey, unique, integer, timestamp, text } from "drizzle-orm/pg-core"
-import { sql } from "drizzle-orm"
 
 export const linhaProducao = pgTable("linha_producao", {
 	id: serial().primaryKey().notNull(),
@@ -67,4 +66,18 @@ export const alerta = pgTable("alerta", {
 			foreignColumns: [etapa.id],
 			name: "fk_etapa_alerta"
 		}),
+]);
+
+export const metaProducao = pgTable("meta_producao", {
+	id: serial().primaryKey().notNull(),
+	linhaId: integer("linha_id").notNull(),
+	data: timestamp("data", { withTimezone: true, mode: 'string' }).notNull(),
+	quantidadeMeta: integer("quantidade_meta").notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.linhaId],
+			foreignColumns: [linhaProducao.id],
+			name: "fk_linha_meta"
+		}),
+	unique("meta_unica_por_linha_data").on(table.linhaId, table.data),
 ]);
