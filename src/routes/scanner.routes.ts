@@ -3,7 +3,7 @@ import { scannerBodySchema } from '../schemas/scanner.schema';
 import { ScannerService } from '../services/scanner.service';
 import { AppError } from '../lib/AppError';
 
-const IntegrityError = '23505'; // Erro de violação de chave única
+const INTEGRITY_ERROR = '23505'; // Erro de violação de chave única
 
 interface IScanBody {
   numero_serie: string;
@@ -27,7 +27,7 @@ export default async function scannerRoutes(fastify: FastifyInstance) {
     } catch (e: any) {
       fastify.log.error(e);
 
-      if (e.code === IntegrityError) {
+      if (e.code === INTEGRITY_ERROR) {
         return reply.status(400).send({ message: 'Numero de serie já associado a outro produto.' });
       }
 
