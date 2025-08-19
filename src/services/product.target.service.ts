@@ -1,4 +1,4 @@
-import { AppError } from "src/lib/AppError";
+import { AppError } from "../lib/AppError";
 import { db } from "../db";
 import { metaProducao } from "../db/schema"; // Importando o schema da meta de produção
 import { eq, and } from "drizzle-orm";
