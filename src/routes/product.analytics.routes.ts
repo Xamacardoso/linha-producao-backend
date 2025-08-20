@@ -6,7 +6,7 @@ export default async function productAnalyticsRoutes(fastify: FastifyInstance) {
   const productAnalyticsService = new ProductAnalyticsService();
 
   // Rota para buscar análise de tempos de um produto específico
-  fastify.get('produto/:produtoId', { schema: { tags: ['Análises'], summary: 'Calcula tempos de ciclo e ociosidade de um produto específico, identificado por "produtoId"' } },
+  fastify.get('/produto/:produtoId', { schema: { tags: ['Análises'], summary: 'Calcula tempos de ciclo e ociosidade de um produto específico, identificado por "produtoId"' } },
   async (request: FastifyRequest<{ Params: { produtoId: string } }>, reply: FastifyReply) => {
     const produtoId = parseInt(request.params.produtoId, 10);
 

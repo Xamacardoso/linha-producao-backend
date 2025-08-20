@@ -1,7 +1,7 @@
 services:
   db:
 
-    image: xamacardoso/linha-producao-db:1.0
+    image: postgres:latest
     
     # Garante que o container reinicie automaticamente se ele parar ou se o sistema reiniciar.
     restart: always
