@@ -44,5 +44,5 @@ export default async function productAnalyticsRoutes(fastify: FastifyInstance) {
 
         return reply.status(500).send({ message: 'Erro interno ao analisar tempos da linha.' });
       }
-  })
+  });
 }

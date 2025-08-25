@@ -1,6 +1,7 @@
 import { db } from '../db';
-import { sql } from 'drizzle-orm';
 import { AppError } from '../lib/AppError';
+import { produto, historicoEtapa, etapa } from '../db/schema';
+import { sql, eq, inArray, desc } from 'drizzle-orm';
 
 export class ProductAnalyticsService {
 
@@ -26,6 +27,8 @@ export class ProductAnalyticsService {
       SELECT
           h.etapa_id AS "etapaId",
           h.nome_etapa AS "nomeEtapa",
+          h.inicio_ts AS "inicioEtapa",
+          h.fim_ts AS "fimEtapa",
           (h.fim_ts - h.inicio_ts) as "duracaoEtapa",
           CASE
               WHEN h."fimEtapaAnterior" IS NOT NULL AND h.inicio_ts IS NOT NULL
@@ -42,78 +45,139 @@ export class ProductAnalyticsService {
       throw new AppError('Produto não encontrado ou sem histórico para análise.', 404);
     }
 
-    const ocioTotalSegundos = this._calcularOcioTotal(analiseEtapas);
+    const tempoOcioTotal = this._calcularOcioTotal(analiseEtapas);
       
     return {
         analisePorEtapa: analiseEtapas,
-        ocioTotalSegundos: ocioTotalSegundos,
+        ocioTotal: tempoOcioTotal,
     };
   }
 
   /**
-   * Analisa o histórico de TODOS OS PRODUTOS CONCLUÍDOS de uma LINHA DE PRODUÇÃO.
-   * Calcula as médias de tempo de ciclo e ociosidade para cada etapa.
-   * @param linhaId O ID da linha de produção a ser analisada.
-   * @returns Um objeto com as médias de tempo para a linha.
+   * Realiza uma análise completa do fluxo de uma linha de produção, detalhando cada produto.
+   * @param linhaId O ID da linha de produção.
+   * @returns Um objeto contendo a contagem de produtos concluídos e uma lista detalhada de cada produto com seu histórico e tempos de ócio.
    */
   public async analisarTemposPorLinha(linhaId: number) {
-    const query = sql`
-      WITH HistoricoComJanela AS (
-        SELECT
-          p.linha_id,
-          h.produto_id,
-          h.etapa_id,
-          e.nome_etapa,
-          -- Calcula a duração da etapa e o tempo de ócio para cada produto individualmente
-          (h.fim_ts - h.inicio_ts) as duracao_etapa,
-          (h.inicio_ts - LAG(h.fim_ts, 1) OVER (PARTITION BY h.produto_id ORDER BY h.etapa_id)) as tempo_de_ocio
-        FROM historico_etapa h
-        JOIN etapa e ON h.etapa_id = e.id
-        JOIN produto p ON h.produto_id = p.id
-        WHERE p.linha_id = ${linhaId} AND p.status_geral = 'Concluido' AND h.fim_ts IS NOT NULL
-      )
-      -- Agrupa os resultados por etapa para calcular as médias
-      SELECT
-        h.etapa_id as "etapaId",
-        h.nome_etapa as "nomeEtapa",
-        AVG(h.duracao_etapa) as "duracaoMediaEtapa",
-        AVG(COALESCE(h.tempo_de_ocio, INTERVAL '0 seconds')) as "tempoMedioDeOcio"
-      FROM HistoricoComJanela h
-      GROUP BY h.etapa_id, h.nome_etapa
-      ORDER BY h.etapa_id;
-    `;
+    // 1. Buscar todos os produtos da linha
+    const produtosNaLinha = await db.select()
+      .from(produto)
+      .where(eq(produto.linhaId, linhaId))
+      .orderBy(desc(produto.dataCriacao));
 
-    const { rows: analiseLinha } = await db.execute(query);
-
-    if (analiseLinha.length === 0) {
-      throw new AppError('Nenhum produto concluído encontrado nesta linha para análise.', 404);
+    if (produtosNaLinha.length === 0) {
+      throw new AppError('Nenhum produto encontrado para esta linha de produção.', 404);
     }
-    
-    const ocioTotalMedioSegundos = this._calcularOcioTotal(analiseLinha, 'tempoMedioDeOcio');
+
+    // 2. Contar quantos estão concluídos
+    const produtosConcluidosCount = produtosNaLinha.filter(p => p.statusGeral === 'Concluido').length;
+
+    // 3. Buscar todo o histórico de etapas para esses produtos de uma só vez
+    const productIds = produtosNaLinha.map(p => p.id);
+    const todosHistoricos = await db.select({
+        produtoId: historicoEtapa.produtoId,
+        etapaId: historicoEtapa.etapaId,
+        nomeEtapa: etapa.nomeEtapa,
+        inicioTs: historicoEtapa.inicioTs,
+        fimTs: historicoEtapa.fimTs,
+    })
+    .from(historicoEtapa)
+    .innerJoin(etapa, eq(historicoEtapa.etapaId, etapa.id))
+    .where(inArray(historicoEtapa.produtoId, productIds))
+    .orderBy(historicoEtapa.produtoId, historicoEtapa.etapaId);
+
+    // 4. Processar os dados em TypeScript para calcular o tempo de ócio
+    const produtosDetalhados = produtosNaLinha.map(p => {
+        const historicoDoProduto = todosHistoricos.filter(h => h.produtoId === p.id);
+        let ultimoFimTs: number | null = null; // timestamp em milissegundos
+        let ocioTotalSegs = 0;
+
+        const etapasComOcio = historicoDoProduto.map(h => {
+            let tempoDeOcioSegs = 0;
+            // Garante que inicioTs e fimTs são datas válidas
+            const inicioTsMs = h.inicioTs ? new Date(h.inicioTs).getTime() : null;
+            const fimTsMs = h.fimTs ? new Date(h.fimTs).getTime() : null;
+
+            if (ultimoFimTs !== null && inicioTsMs !== null) {
+                // Calcula a diferença em segundos
+                tempoDeOcioSegs = Math.max(0, Math.floor((inicioTsMs - ultimoFimTs) / 1000));
+                ocioTotalSegs += tempoDeOcioSegs;
+            }
+            
+            // Atualiza o último timestamp de finalização para a próxima iteração
+            if (fimTsMs !== null) {
+                ultimoFimTs = fimTsMs;
+            }
+
+            return {
+                etapaId: h.etapaId,
+                nomeEtapa: h.nomeEtapa,
+                inicioTs: h.inicioTs,
+                fimTs: h.fimTs,
+                tempoDeOcio: this._formatarDuracaoParaString(tempoDeOcioSegs)
+            };
+        });
+
+        return {
+            produtoId: p.id,
+            nSerie: p.nSerie,
+            status: p.statusGeral,
+            ocioTotal: this._formatarDuracaoParaString(ocioTotalSegs),
+            historico: etapasComOcio
+        };
+    });
 
     return {
-      analiseMediaPorEtapa: analiseLinha,
-      ocioTotalMedioSegundos: ocioTotalMedioSegundos
+      produtosConcluidos: produtosConcluidosCount,
+      totalProdutosNaLinha: produtosNaLinha.length,
+      analiseProdutos: produtosDetalhados
     };
   }
 
   /**
-   * Método privado para calcular o total de segundos de ócio a partir de um resultado de query.
+   * Calcula o tempo total de ócio no formato "HH:MM:SS" a partir dos resultados da query.
    * @param resultados Array de resultados da query.
    * @param campoOcio O nome do campo que contém o intervalo de tempo de ócio.
+   * @returns Tempo total de ócio no formato "HH:MM:SS"
    */
-  private _calcularOcioTotal(resultados: any[], campoOcio = 'tempoDeOcio'): number {
-    return resultados.reduce((sum: number, etapa: any) => {
-      let seconds = 0;
-      const tempoDeOcio = etapa[campoOcio];
-      if (tempoDeOcio) {
-          seconds += (tempoDeOcio.days || 0) * 86400;
-          seconds += (tempoDeOcio.hours || 0) * 3600;
-          seconds += (tempoDeOcio.minutes || 0) * 60;
-          // O resultado de AVG() pode ser um número de segundos em vez de um objeto de intervalo
-          seconds += (typeof tempoDeOcio === 'number' ? tempoDeOcio : (tempoDeOcio.seconds || 0));
+  private _calcularOcioTotal(resultados: any[], campoOcio = 'tempoDeOcio'): string {
+    let totalSeconds = 0;
+
+    for (const etapa of resultados) {
+      const tempo = etapa[campoOcio];
+      if (!tempo) continue;
+
+      if (typeof tempo === 'number') {
+        totalSeconds += tempo;
+      } else if (typeof tempo === 'string') {
+        // Formatos possíveis: "D days HH:MM:SS" ou "HH:MM:SS"
+        const match = tempo.match(/(?:(\d+)\s+days?\s+)?(\d{1,2}):(\d{2}):(\d{2})/);
+        if (match) {
+          const days = parseInt(match[1] || '0', 10);
+          const hours = parseInt(match[2] || '0', 10);
+          const minutes = parseInt(match[3] || '0', 10);
+          const seconds = parseInt(match[4] || '0', 10);
+          totalSeconds += days * 86400 + hours * 3600 + minutes * 60 + seconds;
+        } else {
+          const asNumber = Number(tempo);
+          if (!isNaN(asNumber)) {
+            totalSeconds += asNumber;
+          }
+        }
       }
-      return sum + seconds;
-    }, 0);
+    }
+
+    return this._formatarDuracaoParaString(totalSeconds);
   }
+
+  // Formata uma duração em segundos para o formato "HH:MM:SS"
+  private _formatarDuracaoParaString(duracaoSegundos: number): string {
+    const horas = Math.floor(duracaoSegundos / 3600);
+    const minutos = Math.floor((duracaoSegundos % 3600) / 60);
+    const segundos = duracaoSegundos % 60;
+
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${pad(horas)}:${pad(minutos)}:${pad(segundos)}`;
+  }
+
 }
