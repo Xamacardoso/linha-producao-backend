@@ -27,7 +27,7 @@ export default async function productAnalyticsRoutes(fastify: FastifyInstance) {
 
 
   // Rota para análise de uma linha de producao
-  fastify.get('/linha/:linhaId', { schema: { tags: ['Análises'], summary: 'Calcula tempos médios para uma linha de produção' } },
+  fastify.get('/linha/:linhaId', { schema: { tags: ['Análises'], summary: 'Calcula tempos para uma linha de produção' } },
     async (request: FastifyRequest<{ Params: { linhaId: string } }>, reply: FastifyReply) => {
       const linhaId = parseInt(request.params.linhaId, 10);
 
@@ -45,4 +45,24 @@ export default async function productAnalyticsRoutes(fastify: FastifyInstance) {
         return reply.status(500).send({ message: 'Erro interno ao analisar tempos da linha.' });
       }
   });
+  
+
+  fastify.get('/linha/:linhaId/hoje', { schema: { tags: ['Análises'], summary: 'Calcula o de produção dos produtos em uma linha específica na data atual' } },
+    async (request: FastifyRequest<{ Params: { linhaId: string } }>, reply: FastifyReply) => {
+      const linhaId = parseInt(request.params.linhaId, 10);
+
+      try {
+        const analise = await productAnalyticsService.analisarTemposPorLinhaNaDataAtual(linhaId);
+        return reply.status(200).send(analise);
+
+      } catch (e) {
+        fastify.log.error(e);
+
+        if (e instanceof AppError) {
+          return reply.status(e.statusCode).send({ message: e.message });
+        }
+
+        return reply.status(500).send({ message: 'Erro interno ao analisar produção da linha.' });
+      }
+    });
 }

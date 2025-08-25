@@ -134,6 +134,82 @@ export class ProductAnalyticsService {
     };
   }
 
+  public async analisarTemposPorLinhaNaDataAtual(linhaId: number) {
+    // 1. Buscar todos os produtos da linha criados na data atual
+    const produtosNaLinhaHoje = await db.select()
+      .from(produto)
+      .where(sql`${produto.linhaId} = ${linhaId} AND DATE(${produto.dataCriacao}) = CURRENT_DATE`)
+      .orderBy(desc(produto.dataCriacao));
+
+    if (produtosNaLinhaHoje.length === 0) {
+      throw new AppError('Nenhum produto encontrado para esta linha de produção na data atual.', 404);
+    }
+
+    // 2. Contar quantos estão concluídos
+    const produtosConcluidosCount = produtosNaLinhaHoje.filter(p => p.statusGeral === 'Concluido').length;
+
+    // 3. Buscar todo o histórico de etapas para esses produtos de uma só vez
+    const productIds = produtosNaLinhaHoje.map(p => p.id);
+    const todosHistoricos = await db.select({
+      produtoId: historicoEtapa.produtoId,
+      etapaId: historicoEtapa.etapaId,
+      nomeEtapa: etapa.nomeEtapa,
+      inicioTs: historicoEtapa.inicioTs,
+      fimTs: historicoEtapa.fimTs,
+    })
+      .from(historicoEtapa)
+      .innerJoin(etapa, eq(historicoEtapa.etapaId, etapa.id))
+      .where(inArray(historicoEtapa.produtoId, productIds))
+      .orderBy(historicoEtapa.produtoId, historicoEtapa.etapaId);
+
+    // 4. Processar os dados em TypeScript para calcular o tempo de ócio
+    const produtosDetalhados = produtosNaLinhaHoje.map(p => {
+      const historicoDoProduto = todosHistoricos.filter(h => h.produtoId === p.id);
+      let ultimoFimTs: number | null = null; // timestamp em milissegundos
+      let ocioTotalSegs = 0;
+
+      const etapasComOcio = historicoDoProduto.map(h => {
+        let tempoDeOcioSegs = 0;
+        // Garante que inicioTs e fimTs são datas válidas
+        const inicioTsMs = h.inicioTs ? new Date(h.inicioTs).getTime() : null;
+        const fimTsMs = h.fimTs ? new Date(h.fimTs).getTime() : null;
+
+        if (ultimoFimTs !== null && inicioTsMs !== null) {
+          // Calcula a diferença em segundos
+          tempoDeOcioSegs = Math.max(0, Math.floor((inicioTsMs - ultimoFimTs) / 1000));
+          ocioTotalSegs += tempoDeOcioSegs;
+        }
+
+        // Atualiza o último timestamp de finalização para a próxima iteração
+        if (fimTsMs !== null) {
+          ultimoFimTs = fimTsMs;
+        }
+
+        return {
+          etapaId: h.etapaId,
+          nomeEtapa: h.nomeEtapa,
+          inicioTs: h.inicioTs,
+          fimTs: h.fimTs,
+          tempoDeOcio: this._formatarDuracaoParaString(tempoDeOcioSegs)
+        };
+      });
+
+      return {
+        produtoId: p.id,
+        nSerie: p.nSerie,
+        status: p.statusGeral,
+        ocioTotal: this._formatarDuracaoParaString(ocioTotalSegs),
+        historico: etapasComOcio
+      };
+    });
+
+    return {
+      produtosConcluidos: produtosConcluidosCount,
+      totalProdutosNaLinha: produtosNaLinhaHoje.length,
+      analiseProdutos: produtosDetalhados
+    };
+  }
+
   /**
    * Calcula o tempo total de ócio no formato "HH:MM:SS" a partir dos resultados da query.
    * @param resultados Array de resultados da query.
