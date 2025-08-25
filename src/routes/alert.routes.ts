@@ -27,14 +27,27 @@ export default async function alertRoutes(fastify: FastifyInstance) {
   // Rota para INICIAR um novo alerta
   fastify.post('/', { schema: { body: alertBodySchema, tags: ['Alertas'], summary: 'Cria um novo alerta na linha' } },
   async (request: FastifyRequest<{ Body: IAlertBody }>, reply: FastifyReply) => {
-    const { linha_id, etapa_id } = request.body;
-    
     try {
+      const { linha_id, etapa_id } = request.body;
+      
+      // Validação adicional dos dados
+      if (typeof linha_id !== 'number' || typeof etapa_id !== 'number') {
+        return reply.status(400).send({ 
+          error: 'Dados inválidos',
+          message: 'linha_id e etapa_id devem ser números'
+        });
+      }
+      
       const newAlert = await alertService.criarAlerta(linha_id, etapa_id);
       return reply.status(201).send(newAlert);
 
     } catch (e) {
       fastify.log.error(e);
+      
+      if (e instanceof AppError) {
+        return reply.status(e.statusCode).send({ message: e.message });
+      }
+      
       return reply.status(500).send({ message: 'Erro ao criar alerta.' });
     }
   });   

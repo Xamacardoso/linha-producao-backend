@@ -19,6 +19,18 @@ const server: FastifyInstance = Fastify({
   logger: true,
 });
 
+// Middleware para capturar erros de parsing JSON
+server.addHook('onError', (request, reply, error, done) => {
+  if (error instanceof SyntaxError && error.message.includes('JSON')) {
+    reply.status(400).send({
+      error: 'JSON malformado',
+      message: 'O corpo da requisição deve ser um JSON válido',
+      details: error.message
+    });
+  }
+  done();
+});
+
 // --- Middlewares e Plugins ---
 // Registra o CORS para permitir requisições de outras origens (ex: seu frontend)
 server.register(cors, { origin: '*' }); // Em produção, restrinja a origem para o domínio do seu frontend
