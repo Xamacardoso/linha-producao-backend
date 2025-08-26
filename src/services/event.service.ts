@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { produto, historicoEtapa, etapa } from "../db/schema";
-import { eq, and, isNull, isNotNull } from "drizzle-orm";
+import { eq, and, isNull, isNotNull, exists } from "drizzle-orm";
 import { AppError } from "../lib/AppError";
 
 export class EventService {
@@ -30,10 +30,11 @@ export class EventService {
             .from(produto)
             .where(
                 and(
+                    // Existe registro da etapa anterior finalizada
                     eq(produto.linhaId, linhaId),
                     eq(produto.statusGeral, 'Em producao'),
-                    isNotNull(
-                        db.select().from(historicoEtapa).where(
+                    exists(
+                        db.select({id: historicoEtapa.id}).from(historicoEtapa).where(
                             and(
                                 eq(historicoEtapa.produtoId, produto.id),
                                 eq(historicoEtapa.etapaId, etapaAnterior),
@@ -41,14 +42,16 @@ export class EventService {
                             )
                         )
                     ),
-                    isNull(
-                        db.select().from(historicoEtapa).where(
+
+                    // Existe registro da etapa atual ainda nao iniciada
+                    exists(
+                        db.select({id: historicoEtapa.id}).from(historicoEtapa).where(
                             and(
                                 eq(historicoEtapa.produtoId, produto.id),
                                 eq(historicoEtapa.etapaId, etapa),
-                                isNull(historicoEtapa.fimTs)
+                                isNull(historicoEtapa.inicioTs)
                             )
-                        )   
+                        )
                     )
                 )
             )

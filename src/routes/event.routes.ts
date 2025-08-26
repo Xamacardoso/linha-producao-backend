@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { eventBodySchema } from '../schemas/event.schema';
 import { EventService } from '../services/event.service';
+import { AppError } from '../lib/AppError';
 
 interface IEventBody {
   tipo: 'start' | 'stop';
@@ -27,6 +28,11 @@ export default async function eventRoutes(fastify: FastifyInstance) {
       
     } catch (e) {
       fastify.log.error(e);
+
+      if (e instanceof AppError) {
+        return reply.status(e.statusCode).send({ message: e.message });
+      }
+
       return reply.status(500).send({ message: 'Erro interno do servidor.' });
     }
   });
