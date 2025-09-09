@@ -3,7 +3,7 @@ import { scannerBodySchema } from '../schemas/scanner.schema';
 import { ScannerService } from '../services/scanner.service';
 import { AppError } from '../lib/AppError';
 
-const INTEGRITY_ERROR = '23505'; // Erro de violação de chave única
+const INTEGRITY_ERROR = '23505'; // Erro de violação de chave única no SQL
 
 interface IScanBody {
   numero_serie: string;
@@ -13,8 +13,9 @@ interface IScanBody {
 export default async function scannerRoutes(fastify: FastifyInstance) {
   const scannerService = new ScannerService();
 
-  fastify.post('/associar', { schema: { body: scannerBodySchema, tags: ['Scanner'], summary: 'Associa um serial ao último produto concluído' } },
-  async (request: FastifyRequest<{ Body: IScanBody }>, reply: FastifyReply) => {
+  fastify.post('/linhas/:linhaId/associar', { schema: { body: scannerBodySchema, tags: ['Scanner'], summary: 'Associa um serial ao último produto concluído' } },
+  async (request: FastifyRequest<{ Params: { linhaId: string }, Body: IScanBody }>, reply: FastifyReply) => {
+    const linhaId = parseInt(request.params.linhaId, 10);
     const { numero_serie, linha_id } = request.body;
 
     try {

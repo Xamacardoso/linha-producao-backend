@@ -5,7 +5,7 @@ import { AppError } from '../lib/AppError';
 
 interface IEventBody {
   tipo: 'start' | 'stop';
-  etapa: number;
+  etapa_id: number;
   linha_id: number;
 }
 
@@ -14,15 +14,15 @@ export default async function eventRoutes(fastify: FastifyInstance) {
 
   fastify.post('/', { schema: { body: eventBodySchema, tags: ['Eventos de Linha'], summary: 'Processa eventos de START/STOP das etapas' } }, 
   async (request: FastifyRequest<{ Body: IEventBody }>, reply: FastifyReply) => {
-    const { tipo, etapa, linha_id } = request.body;
+    const { tipo, etapa_id, linha_id } = request.body;
 
     try {
       let produtoId: number;
       
-      produtoId = await eventService.startStop(etapa, linha_id, tipo);
+      produtoId = await eventService.startStop(etapa_id, linha_id, tipo);
 
       return reply.status(200).send({ 
-        message: `Evento '${tipo}' para etapa ${etapa} na linha ${linha_id} processado com sucesso.`,
+        message: `Evento '${tipo}' para etapa ${etapa_id} na linha ${linha_id} processado com sucesso.`,
         produtoId: produtoId 
       });
       

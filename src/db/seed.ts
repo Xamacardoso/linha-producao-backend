@@ -68,45 +68,46 @@ async function povoarEtapas() {
 }
 
 async function povoarProdutos() {
-    // --- Produto 1: Concluído ---
-    const [p1] = await db.insert(produto).values({
-        linhaId: 1,
-        statusGeral: 'Concluido',
-        dataConclusao: new Date(HOJE.getTime() - 1 * 60 * 60 * 1000).toISOString(), // 1 hora atrás
-    }).returning();
-    await db.insert(historicoEtapa).values([
-        { produtoId: p1.id, etapaId: 1, inicioTs: new Date(HOJE.getTime() - (2 * 60 * 60 * 1000)).toISOString(), fimTs: new Date(HOJE.getTime() - (1.8 * 60 * 60 * 1000)).toISOString() },
-        { produtoId: p1.id, etapaId: 2, inicioTs: new Date(HOJE.getTime() - (1.7 * 60 * 60 * 1000)).toISOString(), fimTs: new Date(HOJE.getTime() - (1.5 * 60 * 60 * 1000)).toISOString() },
-        { produtoId: p1.id, etapaId: 3, inicioTs: new Date(HOJE.getTime() - (1.4 * 60 * 60 * 1000)).toISOString(), fimTs: new Date(HOJE.getTime() - (1.3 * 60 * 60 * 1000)).toISOString() },
-        { produtoId: p1.id, etapaId: 4, inicioTs: new Date(HOJE.getTime() - (1.2 * 60 * 60 * 1000)).toISOString(), fimTs: new Date(HOJE.getTime() - (1.1 * 60 * 60 * 1000)).toISOString() },
-        { produtoId: p1.id, etapaId: 5, inicioTs: new Date(HOJE.getTime() - (1.05 * 60 * 60 * 1000)).toISOString(), fimTs: new Date(HOJE.getTime() - (1 * 60 * 60 * 1000)).toISOString() },
-    ]);
+    // // --- Produto 1: Concluído ---
+    // const [p1] = await db.insert(produto).values({
+    //     linhaId: 1,
+    //     statusGeral: 'Concluido',
+    //     dataConclusao: new Date(HOJE.getTime() - 1 * 60 * 60 * 1000).toISOString(), // 1 hora atrás
+    // }).returning();
+    // await db.insert(historicoEtapa).values([
+    //     { produtoId: p1.id, etapaId: 1, inicioTs: new Date(HOJE.getTime() - (2 * 60 * 60 * 1000)).toISOString(), fimTs: new Date(HOJE.getTime() - (1.8 * 60 * 60 * 1000)).toISOString() },
+    //     { produtoId: p1.id, etapaId: 2, inicioTs: new Date(HOJE.getTime() - (1.7 * 60 * 60 * 1000)).toISOString(), fimTs: new Date(HOJE.getTime() - (1.5 * 60 * 60 * 1000)).toISOString() },
+    //     { produtoId: p1.id, etapaId: 3, inicioTs: new Date(HOJE.getTime() - (1.4 * 60 * 60 * 1000)).toISOString(), fimTs: new Date(HOJE.getTime() - (1.3 * 60 * 60 * 1000)).toISOString() },
+    //     { produtoId: p1.id, etapaId: 4, inicioTs: new Date(HOJE.getTime() - (1.2 * 60 * 60 * 1000)).toISOString(), fimTs: new Date(HOJE.getTime() - (1.1 * 60 * 60 * 1000)).toISOString() },
+    //     { produtoId: p1.id, etapaId: 5, inicioTs: new Date(HOJE.getTime() - (1.05 * 60 * 60 * 1000)).toISOString(), fimTs: new Date(HOJE.getTime() - (1 * 60 * 60 * 1000)).toISOString() },
+    // ]);
 
-    // --- Produto 2: Em produção, na etapa 3 ---
-    const [p2] = await db.insert(produto).values({
-        linhaId: 1,
-        statusGeral: 'Em producao',
-    }).returning();
-    await db.insert(historicoEtapa).values([
-        { produtoId: p2.id, etapaId: 1, inicioTs: new Date(HOJE.getTime() - (45 * 60 * 1000)).toISOString(), fimTs: new Date(HOJE.getTime() - (40 * 60 * 1000)).toISOString() },
-        { produtoId: p2.id, etapaId: 2, inicioTs: new Date(HOJE.getTime() - (35 * 60 * 1000)).toISOString(), fimTs: new Date(HOJE.getTime() - (30 * 60 * 1000)).toISOString() },
-        { produtoId: p2.id, etapaId: 3, inicioTs: new Date(HOJE.getTime() - (20 * 60 * 1000)).toISOString(), fimTs: null }, // Parado aqui
-        { produtoId: p2.id, etapaId: 4, inicioTs: null, fimTs: null },
-        { produtoId: p2.id, etapaId: 5, inicioTs: null, fimTs: null },
-    ]);
+    // // --- Produto 2: Em produção, na etapa 3 ---
+    // const [p2] = await db.insert(produto).values({
+    //     linhaId: 1,
+    //     statusGeral: 'Em producao',
+    // }).returning();
+    // await db.insert(historicoEtapa).values([
+    //     { produtoId: p2.id, etapaId: 1, inicioTs: new Date(HOJE.getTime() - (45 * 60 * 1000)).toISOString(), fimTs: new Date(HOJE.getTime() - (40 * 60 * 1000)).toISOString() },
+    //     { produtoId: p2.id, etapaId: 2, inicioTs: new Date(HOJE.getTime() - (35 * 60 * 1000)).toISOString(), fimTs: new Date(HOJE.getTime() - (30 * 60 * 1000)).toISOString() },
+    //     { produtoId: p2.id, etapaId: 3, inicioTs: new Date(HOJE.getTime() - (20 * 60 * 1000)).toISOString(), fimTs: null }, // Parado aqui
+    //     { produtoId: p2.id, etapaId: 4, inicioTs: null, fimTs: null },
+    //     { produtoId: p2.id, etapaId: 5, inicioTs: null, fimTs: null },
+    // ]);
 
-    // --- Produto 3: Aguardando para iniciar a etapa 2 ---
-    const [p3] = await db.insert(produto).values({
-        linhaId: 2,
-        statusGeral: 'Em producao',
-    }).returning();
-    await db.insert(historicoEtapa).values([
-        { produtoId: p3.id, etapaId: 1, inicioTs: new Date(HOJE.getTime() - (15 * 60 * 1000)).toISOString(), fimTs: new Date(HOJE.getTime() - (10 * 60 * 1000)).toISOString() }, // Acabou de finalizar
-        { produtoId: p3.id, etapaId: 2, inicioTs: null, fimTs: null },
-        { produtoId: p3.id, etapaId: 3, inicioTs: null, fimTs: null },
-        { produtoId: p3.id, etapaId: 4, inicioTs: null, fimTs: null },
-        { produtoId: p3.id, etapaId: 5, inicioTs: null, fimTs: null },
-    ]);
+    // // --- Produto 3: Aguardando para iniciar a etapa 2 ---
+    // const [p3] = await db.insert(produto).values({
+    //     linhaId: 2,
+    //     statusGeral: 'Em producao',
+    // }).returning();
+    // await db.insert(historicoEtapa).values([
+    //     { produtoId: p3.id, etapaId: 1, inicioTs: new Date(HOJE.getTime() - (15 * 60 * 1000)).toISOString(), fimTs: new Date(HOJE.getTime() - (10 * 60 * 1000)).toISOString() }, // Acabou de finalizar
+    //     { produtoId: p3.id, etapaId: 2, inicioTs: null, fimTs: null },
+    //     { produtoId: p3.id, etapaId: 3, inicioTs: null, fimTs: null },
+    //     { produtoId: p3.id, etapaId: 4, inicioTs: null, fimTs: null },
+    //     { produtoId: p3.id, etapaId: 5, inicioTs: null, fimTs: null },
+    // ]);
+    console.log("[SEED TEST] Produtos não povoados.");
 }
 
 async function povoarAlertas() {

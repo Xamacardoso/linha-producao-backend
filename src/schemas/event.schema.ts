@@ -2,10 +2,10 @@
 // o que melhora a inferência de tipos e a validação no Fastify.
 export const eventBodySchema = {
     type: 'object',
-    required: ['tipo', 'etapa', 'linha_id'],
+    required: ['tipo', 'etapa_id', 'linha_id'],
     properties: {
       tipo: { type: 'string', enum: ['start', 'stop'], description: 'O tipo de evento ocorrido.' },
-      etapa: { type: 'number', minimum: 1, maximum: 5, description: 'O número da etapa onde o evento ocorreu.' },
+      etapa_id: { type: 'number', minimum: 1, maximum: 5, description: 'O número da etapa onde o evento ocorreu.' },
       linha_id: { type: 'number', minimum: 1, description: 'O ID da linha de produção onde o evento ocorreu.' },
     },
   } as const;

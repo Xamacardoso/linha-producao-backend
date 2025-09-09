@@ -24,7 +24,7 @@ export default async function productTargetRoutes(fastify: FastifyInstance) {
     });
 
     // Pega a meta de uma linha de producao específica
-    fastify.get('/linha/:linhaId', { schema: { tags: ['Metas de Produção'], summary: 'Busca as metas de produção para uma linha específica' } },
+    fastify.get('/linhas/:linhaId', { schema: { tags: ['Metas de Produção'], summary: 'Busca as metas de produção para uma linha específica' } },
     async (request: FastifyRequest<{ Params: { linhaId: string } }>, reply: FastifyReply) => {
         const linhaId = parseInt(request.params.linhaId, 10);
 
@@ -45,7 +45,7 @@ export default async function productTargetRoutes(fastify: FastifyInstance) {
     });
 
     // Meta para postar um novo registro de meta de produção em uma linha específica
-    fastify.post('/linha/:linhaId', { schema: { tags: ['Metas de Produção'], summary: 'Cria uma nova meta de produção para uma linha específica', body: productTargetBodySchema } },
+    fastify.post('/linhas/:linhaId', { schema: { tags: ['Metas de Produção'], summary: 'Cria uma nova meta de produção para uma linha específica', body: productTargetBodySchema } },
     async (request: FastifyRequest<{ Params: { linhaId: string }, Body: ITargetBody }>, reply: FastifyReply) => {
         const linhaId = parseInt(request.params.linhaId, 10);
         const { meta } = request.body;
@@ -67,7 +67,7 @@ export default async function productTargetRoutes(fastify: FastifyInstance) {
     });
 
     // Meta para atualizar um registro de meta de produção em uma linha específica
-    fastify.patch('/linha/:linhaId', { schema: { tags: ['Metas de Produção'], summary: 'Atualiza uma meta de produção existente para uma linha específica', body: productTargetBodySchema } },
+    fastify.put('/linhas/:linhaId', { schema: { tags: ['Metas de Produção'], summary: 'Atualiza uma meta de produção existente para uma linha específica', body: productTargetBodySchema } },
     async (request: FastifyRequest<{ Params: { linhaId: string }, Body: ITargetBody }>, reply: FastifyReply) => {
         const linhaId = parseInt(request.params.linhaId, 10);
         const { meta } = request.body;
@@ -79,6 +79,11 @@ export default async function productTargetRoutes(fastify: FastifyInstance) {
 
         } catch (e) {
             fastify.log.error(e);
+
+            if (e instanceof AppError) {
+                return reply.status(e.statusCode).send({ message: e.message });
+            }
+
             return reply.status(500).send({ message: 'Erro ao atualizar meta de produção.' });
         }
     });

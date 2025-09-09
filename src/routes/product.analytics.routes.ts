@@ -6,7 +6,7 @@ export default async function productAnalyticsRoutes(fastify: FastifyInstance) {
   const productAnalyticsService = new ProductAnalyticsService();
 
   // Rota para buscar análise de tempos de um produto específico
-  fastify.get('/produto/:produtoId', { schema: { tags: ['Análises'], summary: 'Calcula tempos de ciclo e ociosidade de um produto específico, identificado por "produtoId"' } },
+  fastify.get('/produtos/:produtoId', { schema: { tags: ['Análises'], summary: 'Calcula tempos de ciclo e ociosidade de um produto específico, identificado por "produtoId"' } },
   async (request: FastifyRequest<{ Params: { produtoId: string } }>, reply: FastifyReply) => {
     const produtoId = parseInt(request.params.produtoId, 10);
 
@@ -27,7 +27,7 @@ export default async function productAnalyticsRoutes(fastify: FastifyInstance) {
 
 
   // Rota para análise de uma linha de producao
-  fastify.get('/linha/:linhaId', { schema: { tags: ['Análises'], summary: 'Calcula tempos para uma linha de produção' } },
+  fastify.get('/linhas/:linhaId', { schema: { tags: ['Análises'], summary: 'Calcula tempos para uma linha de produção' } },
     async (request: FastifyRequest<{ Params: { linhaId: string } }>, reply: FastifyReply) => {
       const linhaId = parseInt(request.params.linhaId, 10);
 
@@ -47,7 +47,7 @@ export default async function productAnalyticsRoutes(fastify: FastifyInstance) {
   });
   
 
-  fastify.get('/linha/:linhaId/hoje', { schema: { tags: ['Análises'], summary: 'Calcula o de produção dos produtos em uma linha específica na data atual' } },
+  fastify.get('/linhas/:linhaId/hoje', { schema: { tags: ['Análises'], summary: 'Calcula o de produção dos produtos em uma linha específica na data atual' } },
     async (request: FastifyRequest<{ Params: { linhaId: string } }>, reply: FastifyReply) => {
       const linhaId = parseInt(request.params.linhaId, 10);
 

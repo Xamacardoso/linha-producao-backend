@@ -20,6 +20,11 @@ export default async function alertRoutes(fastify: FastifyInstance) {
 
     } catch (e) {
       fastify.log.error(e);
+
+      if (e instanceof AppError) {
+        return reply.status(e.statusCode).send({ message: e.message });
+      }
+
       return reply.status(500).send({ message: 'Erro ao listar alertas.' });
     }
   });
@@ -53,7 +58,7 @@ export default async function alertRoutes(fastify: FastifyInstance) {
   });   
 
   // Rota para RESOLVER/FINALIZAR um alerta existente
-  fastify.patch('/:linhaId/:etapaId/resolver', { schema: { tags: ['Alertas'], summary: 'Resolve o último alerta aberto para uma linha e etapa' } },
+  fastify.patch('/linhas/:linhaId/etapas/:etapaId/resolver', { schema: { tags: ['Alertas'], summary: 'Resolve o último alerta aberto para uma linha e etapa' } },
   async (request: FastifyRequest<{ Params: { linhaId: string, etapaId: string } }>, reply: FastifyReply) => {
     const { linhaId, etapaId } = request.params;
     

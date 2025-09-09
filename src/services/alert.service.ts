@@ -58,7 +58,11 @@ export class AlertService {
     public async listarAlertas() {
         const alertas: Alerta[] = await db.select().from(alerta)
             .orderBy(desc(alerta.inicioAlertaTs)); // Ordena por data de início do alerta
-            
+        
+        if (alertas.length === 0) {
+            throw new AppError('Nenhum alerta encontrado.', 404);
+        }
+
         return alertas;
     }
 }
