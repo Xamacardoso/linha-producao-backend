@@ -44,47 +44,32 @@ export default async function productTargetRoutes(fastify: FastifyInstance) {
         }
     });
 
-    // Meta para postar um novo registro de meta de produção em uma linha específica
-    fastify.post('/linhas/:linhaId', { schema: { tags: ['Metas de Produção'], summary: 'Cria uma nova meta de produção para uma linha específica', body: productTargetBodySchema } },
-    async (request: FastifyRequest<{ Params: { linhaId: string }, Body: ITargetBody }>, reply: FastifyReply) => {
-        const linhaId = parseInt(request.params.linhaId, 10);
-        const { meta } = request.body;
+    // Meta para criar ou atualizar um registro de meta de produção em uma linha específica
+    fastify.put('/linhas/:linhaId', { schema: { tags: ['Metas de Produção'], summary: 'Cria uma meta de produção para uma determinada linha de montagem, ou atualiza, se já existir previamente', body: productTargetBodySchema } },
+        async (request: FastifyRequest<{ Params: { linhaId: string }, Body: ITargetBody }>, reply: FastifyReply) => {
+            const linhaId = parseInt(request.params.linhaId, 10);
+            const { meta } = request.body;
+            
+            try {
+                const metaExistente = await productTargetService.listarMetaLinha(linhaId);
 
-        try {
-            const novaMeta = await productTargetService.criarMetaLinha(linhaId, meta);
+                if (!metaExistente) {
+                    const novaMeta = await productTargetService.criarMetaLinha(linhaId, meta);
+                    return reply.status(201).send({ message: 'Meta de produção criada com sucesso.', meta: novaMeta });
+                }
 
-            return reply.status(201).send({ message: 'Meta de produção criada com sucesso.', meta: novaMeta });
-
-        } catch (e) {
-            fastify.log.error(e);
-
-            if (e instanceof AppError) {
-                return reply.status(e.statusCode).send({ message: e.message });
+                const metaAtualizada = await productTargetService.atualizarMetaLinha(linhaId, meta);
+    
+                return reply.status(200).send({ message: 'Meta de produção atualizada com sucesso.', metaAtual: metaAtualizada });
+    
+            } catch (e) {
+                fastify.log.error(e);
+    
+                if (e instanceof AppError) {
+                    return reply.status(e.statusCode).send({ message: e.message });
+                }
+    
+                return reply.status(500).send({ message: 'Erro ao atualizar meta de produção.' });
             }
-
-            return reply.status(500).send({ message: 'Erro ao criar meta de produção.' });
-        }
-    });
-
-    // Meta para atualizar um registro de meta de produção em uma linha específica
-    fastify.put('/linhas/:linhaId', { schema: { tags: ['Metas de Produção'], summary: 'Atualiza uma meta de produção existente para uma linha específica', body: productTargetBodySchema } },
-    async (request: FastifyRequest<{ Params: { linhaId: string }, Body: ITargetBody }>, reply: FastifyReply) => {
-        const linhaId = parseInt(request.params.linhaId, 10);
-        const { meta } = request.body;
-
-        try {
-            const metaAtualizada = await productTargetService.atualizarMetaLinha(linhaId, meta);
-
-            return reply.status(200).send({ message: 'Meta de produção atualizada com sucesso.', metaAtual: metaAtualizada });
-
-        } catch (e) {
-            fastify.log.error(e);
-
-            if (e instanceof AppError) {
-                return reply.status(e.statusCode).send({ message: e.message });
-            }
-
-            return reply.status(500).send({ message: 'Erro ao atualizar meta de produção.' });
-        }
-    });
+        });
 }
