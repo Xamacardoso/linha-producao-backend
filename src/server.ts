@@ -1,4 +1,6 @@
 import Fastify, { FastifyInstance } from 'fastify';
+// Importação das ferramentas necessaria do Zod e do Type provider
+import { ZodTypeProvider, serializerCompiler, validatorCompiler, } from 'fastify-type-provider-zod';
 import cors from '@fastify/cors';
 import fastifyPostgres from '@fastify/postgres';
 import fastifySwagger from '@fastify/swagger';
@@ -17,7 +19,11 @@ dotenv.config();
 
 const server: FastifyInstance = Fastify({
   logger: true,
-});
+}).withTypeProvider<ZodTypeProvider>(); //Modifica a inicialização do Fastify para usar o "Type Provider"
+
+// Adição dos novos compiladores ANTES de registrar as rotas
+server.setValidatorCompiler(validatorCompiler);
+server.setSerializerCompiler(serializerCompiler);
 
 // Middleware para capturar erros de parsing JSON
 server.addHook('onError', (request, reply, error, done) => {
@@ -34,12 +40,10 @@ server.addHook('onError', (request, reply, error, done) => {
 // --- Middlewares e Plugins ---
 // Registra o CORS para permitir requisições de outras origens (ex: seu frontend)
 server.register(cors, { origin: '*' }); // Em produção, restrinja a origem para o domínio do seu frontend
-
 // Registra o plugin para conectar ao Banco de Dados PostgreSQL
 server.register(fastifyPostgres, {
   connectionString: process.env.DATABASE_URL,
 });
-
 // Registra o Swagger para gerar a especificação OpenAPI
 server.register(fastifySwagger, {
   swagger: {
@@ -54,7 +58,6 @@ server.register(fastifySwagger, {
     produces: ['application/json']
   }
 });
-
 // Registra a UI do Swagger para criar uma página de documentação interativa
 server.register(fastifySwaggerUI, {
   routePrefix: '/docs',
@@ -63,7 +66,6 @@ server.register(fastifySwaggerUI, {
     deepLinking: true
   },
 });
-
 // --- Registro de Rotas ---
 // Cada grupo de rotas é registrado com um prefixo para manter a API organizada
 server.register(eventRoutes, { prefix: '/api/eventos' });
