@@ -1,11 +1,21 @@
-// Usamos "as const" para que o TypeScript trate isso como um objeto imutável,
-// o que melhora a inferência de tipos e a validação no Fastify.
-export const eventBodySchema = {
-    type: 'object',
-    required: ['tipo', 'etapa_id', 'linha_id'],
-    properties: {
-      tipo: { type: 'string', enum: ['start', 'stop'], description: 'O tipo de evento ocorrido.' },
-      etapa_id: { type: 'number', minimum: 1, maximum: 5, description: 'O número da etapa onde o evento ocorreu.' },
-      linha_id: { type: 'number', minimum: 1, description: 'O ID da linha de produção onde o evento ocorreu.' },
-    },
-  } as const;
+// src/schemas/event.schema.ts (versão com Zod)
+import { z } from 'zod'; // importa o objeto principal do zod
+
+// 1. Definindo o schema com Zod
+export const eventBodySchema = z.object({
+  tipo: z.enum(['start', 'stop'])
+    .describe('O tipo de evento ocorrido.'),
+
+  etapa_id: z.number()
+    .min(1, { message: "A etapa deve ser no mínimo 1" })
+    .max(5, { message: "A etapa deve ser no máximo 5" })
+    .describe('O número da etapa onde o evento ocorreu.'),
+  
+  linha_id: z.number()
+    .min(1, { message: "O ID da linha deve ser no mínimo 1" })
+    .describe('O ID da linha de produção onde o evento ocorreu.'),
+});
+
+// 2. Infere o tipo a partir do schema
+export type EventBody = z.infer<typeof eventBodySchema>;
+
