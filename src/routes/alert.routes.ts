@@ -1,12 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { alertBodySchema } from '../schemas/alert.schema';
+import { alertBodySchema, AlertRequestBody } from '../schemas/alert.schema';
 import { Alerta, AlertService } from '../services/alert.service';
 import { AppError } from '../lib/AppError';
-
-interface IAlertBody {
-    linha_id: number;
-    etapa_id: number;
-}
 
 export default async function alertRoutes(fastify: FastifyInstance) {
   const alertService: AlertService = new AlertService();
@@ -31,7 +26,7 @@ export default async function alertRoutes(fastify: FastifyInstance) {
 
   // Rota para INICIAR um novo alerta
   fastify.post('/', { schema: { body: alertBodySchema, tags: ['Alertas'], summary: 'Cria um novo alerta na linha' } },
-  async (request: FastifyRequest<{ Body: IAlertBody }>, reply: FastifyReply) => {
+  async (request: FastifyRequest<{ Body: AlertRequestBody }>, reply: FastifyReply) => {
     try {
       const { linha_id, etapa_id } = request.body;
       
