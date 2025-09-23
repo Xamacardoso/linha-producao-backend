@@ -6,7 +6,7 @@ import { AppError } from '../lib/AppError';
 export default async function eventRoutes(fastify: FastifyInstance) {
   const eventService: EventService = new EventService();
 
-  fastify.post('/', {
+  fastify.post('/linhas/:linhaId/etapas/:etapaId', {
     schema: {
       body: eventBodySchema,
       tags: ['Eventos de Linha'],
@@ -14,8 +14,10 @@ export default async function eventRoutes(fastify: FastifyInstance) {
     }
   },
     
-  async (request: FastifyRequest<{ Body: EventRequestBody }>, reply: FastifyReply) => {
-    const { tipo, etapa_id, linha_id } = request.body;
+  async (request: FastifyRequest<{ Params: {linhaId: string, etapaId: string}, Body: EventRequestBody }>, reply: FastifyReply) => {
+    const linha_id = parseInt(request.params.linhaId, 10);
+    const etapa_id = parseInt(request.params.etapaId, 10);
+    const tipo : "start" | "stop" = request.body.tipo;
 
     try {
       let produtoId: number = await eventService.startStop(etapa_id, linha_id, tipo);
