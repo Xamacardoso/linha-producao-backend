@@ -1,7 +1,5 @@
-// src/schemas/event.schema.ts (versão com Zod)
 import { z } from 'zod'; // importa o objeto principal do zod
 
-// 1. Definindo o schema com Zod
 export const eventBodySchema = z.object({
   tipo: z.enum(['start', 'stop'])
     .describe('O tipo de evento ocorrido.'),
@@ -16,6 +14,4 @@ export const eventBodySchema = z.object({
     .describe('O ID da linha de produção onde o evento ocorreu.'),
 });
 
-// 2. Infere o tipo a partir do schema
-export type EventBody = z.infer<typeof eventBodySchema>;
-
+export type EventRequestBody = z.infer<typeof eventBodySchema>;
