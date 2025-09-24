@@ -1,11 +1,9 @@
-export const productTargetBodySchema = {
-    type: 'object',
-    required: ['meta'],
-    properties: {
-        meta: { 
-            type: 'number', 
-            minimum: 1, 
-            description: 'Quantidade da meta de produção para a linha especificada.' 
-        },
-    },
-} as const;
+import {z} from "zod";
+
+export const productTargetBodySchema = z.object({
+    meta: z.number()
+        .min(1, { message: "A meta deve ser no mínimo 1" })
+        .describe('Quantidade da meta de produção para a linha especificada.'),
+});
+
+export type ProductTargetRequestBody = z.infer<typeof productTargetBodySchema>;

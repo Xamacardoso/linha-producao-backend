@@ -1,11 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { ProductTargetService } from "../services/product.target.service";
 import { AppError } from "../lib/AppError";
-import { productTargetBodySchema } from "../schemas/product.target.schema";
-
-interface ITargetBody {
-    meta: number;
-}
+import { productTargetBodySchema, ProductTargetRequestBody } from "../schemas/product.target.schema";
 
 export default async function productTargetRoutes(fastify: FastifyInstance) {
     const productTargetService = new ProductTargetService();
@@ -46,7 +42,7 @@ export default async function productTargetRoutes(fastify: FastifyInstance) {
 
     // Meta para criar ou atualizar um registro de meta de produção em uma linha específica
     fastify.put('/linhas/:linhaId', { schema: { tags: ['Metas de Produção'], summary: 'Cria uma meta de produção para uma determinada linha de montagem, ou atualiza, se já existir previamente', body: productTargetBodySchema } },
-        async (request: FastifyRequest<{ Params: { linhaId: string }, Body: ITargetBody }>, reply: FastifyReply) => {
+        async (request: FastifyRequest<{ Params: { linhaId: string }, Body: ProductTargetRequestBody }>, reply: FastifyReply) => {
             const linhaId = parseInt(request.params.linhaId, 10);
             const { meta } = request.body;
             

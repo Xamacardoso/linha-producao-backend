@@ -1,6 +1,6 @@
 import Fastify, { FastifyInstance } from 'fastify';
 // Importação das ferramentas necessaria do Zod e do Type provider
-import { ZodTypeProvider, serializerCompiler, validatorCompiler, } from 'fastify-type-provider-zod';
+import { ZodTypeProvider, serializerCompiler, validatorCompiler, jsonSchemaTransform } from 'fastify-type-provider-zod';
 import cors from '@fastify/cors';
 import fastifyPostgres from '@fastify/postgres';
 import fastifySwagger from '@fastify/swagger';
@@ -44,20 +44,38 @@ server.register(cors, { origin: '*' }); // Em produção, restrinja a origem par
 server.register(fastifyPostgres, {
   connectionString: process.env.DATABASE_URL,
 });
+
+// Registra o Swagger para gerar a especificação OpenAPI
+// server.register(fastifySwagger, {
+//   swagger: {
+//     info: {
+//       title: 'API de Monitoramento de Linha de Produção',
+//       description: 'Documentação dos endpoints da API para gerenciar o fluxo da linha de produção.',
+//       version: '1.0.0'
+//     },
+//     host: `localhost:${process.env.PORT || 3000}`, // Host dinâmico
+//     schemes: ['http'],
+//     consumes: ['application/json'],
+//     produces: ['application/json']
+//   },
+//   transform: jsonSchemaTransform
+// });
+
 // Registra o Swagger para gerar a especificação OpenAPI
 server.register(fastifySwagger, {
-  swagger: {
+  openapi: {
     info: {
       title: 'API de Monitoramento de Linha de Produção',
       description: 'Documentação dos endpoints da API para gerenciar o fluxo da linha de produção.',
       version: '1.0.0'
     },
-    host: `localhost:${process.env.PORT || 3000}`, // Host dinâmico
-    schemes: ['http'],
-    consumes: ['application/json'],
-    produces: ['application/json']
-  }
+    servers: [
+      { url: `http://localhost:${process.env.PORT || 3000}` }
+    ]
+  },
+  transform: jsonSchemaTransform
 });
+
 // Registra a UI do Swagger para criar uma página de documentação interativa
 server.register(fastifySwaggerUI, {
   routePrefix: '/docs',
